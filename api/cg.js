@@ -1,10 +1,10 @@
-// /api/cg.js  – Binance 全局多空比（2025-09 實測可用）
+// /api/cg.js  – Binance UM 账户多空比（最新可用）
 export default async function handler(req, res) {
   const sym  = (req.query.s || 'BTCUSDT').toUpperCase();
 
   const [frRes, lsrRes] = await Promise.all([
     fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${sym}`),
-    fetch(`https://fapi.binance.com/fapi/v1/globalLongShortAccountRatio?symbol=${sym}&period=1h&limit=1`)
+    fetch(`https://fapi.binance.com/fapi/v1/umAccountRatio?symbol=${sym}&period=1h&limit=1`)
   ]);
 
   const frData  = await frRes.json();
