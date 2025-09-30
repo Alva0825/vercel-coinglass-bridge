@@ -1,7 +1,7 @@
 // api/cg.js
 export default async function handler(req, res) {
-  const CG = process.env.CG_API_KEY;
-  const sym = (req.query.s || 'BTC').toUpperCase();
+  const CG   = process.env.CG_API_KEY;
+  const sym  = (req.query.s || 'BTC').toUpperCase();
   const exch = (req.query.e || 'Binance').toLowerCase();
 
   const [frRes, lsrRes] = await Promise.all([
