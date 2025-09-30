@@ -1,25 +1,16 @@
-// api/cg.js
+// api/cg.js  – Binance 免费源
 export default async function handler(req, res) {
-  const CG   = process.env.CG_API_KEY;
-  const sym  = (req.query.s || 'BTC').toUpperCase();
-  const exch = (req.query.e || 'Binance').toLowerCase();
-
-  const [frRes, lsrRes] = await Promise.all([
-    fetch(`https://open-api-v4.coinglass.com/api/futures/funding-rate/exchange-list`, {
-      headers: { 'CG-API-KEY': CG }
-    }),
-    fetch(`https://open-api-v4.coinglass.com/api/futures/global-long-short-account-ratio/history?symbol=${sym}&interval=1h&limit=1`, {
-      headers: { 'CG-API-KEY': CG }
-    })
-  ]);
-
-  const frData  = await frRes.json();
+  const sym  = (req.query.s || 'BTCUSDT').toUpperCase();   // Binance 用 BTCUSDT
+  // 1. 资金费率
+  const frRes = await fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${sym}`);
+  const frData = await frRes.json();
+  // 2. 多空比（Top 账户）
+  const lsrRes = await fetch(`https://fapi.binance.com/fapi/v1/topLongShortAccountRatio?symbol=${sym}&period=1h&limit=1`);
   const lsrData = await lsrRes.json();
 
-  const item = frData.data?.find(i => i.symbol === sym);
-  const fr   = item?.stablecoin_margin_list?.find(j => j.exchange.toLowerCase() === exch)?.funding_rate || 0;
-  const lsr  = lsrData.data?.[0]?.global_account_long_short_ratio || 1;
+  const fr  = parseFloat(frData.lastFundingRate) || 0;
+  const lsr = parseFloat(lsrData[0]?.longShortRatio) || 1;
 
-  res.setHeader('Cache-Control', 's-maxage=20');
-  res.json({ fr: Number(fr), lsr: Number(lsr) });
+  res.setHeader('Cache-Control', 's-maxage=60');
+  res.json({ fr, lsr });
 }
